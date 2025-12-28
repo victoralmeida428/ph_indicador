@@ -1,51 +1,41 @@
+import 'package:ph_indicador/src/features/indicador/data/models/indicator_range_model.dart';
 import 'package:ph_indicador/src/features/indicador/domain/entities/indicator.dart';
 
 class IndicatorModel extends Indicator {
   IndicatorModel({
-    required super.id,
-    required super.name,
-    required super.phMin,
-    required super.phMax,
-    required super.colorHex,
-  });
+    required String id,
+    required String name,
+    required List<IndicatorRangeModel> ranges,
+  }) : super(id: id, name: name, ranges: ranges);
 
-  factory IndicatorModel.fromMap(Map<String, dynamic> map) {
-    return IndicatorModel(
-      id: map['id'],
-      name: map['name'],
-      phMin: map['phMin'],
-      phMax: map['phMax'],
-      colorHex: map['colorHex'],
-    );
-  }
-
-  factory IndicatorModel.fromEntity(Indicator indicator) {
-    return IndicatorModel(
-      id: indicator.id,
-      name: indicator.name,
-      phMin: indicator.phMin,
-      phMax: indicator.phMax,
-      colorHex: indicator.colorHex,
-    );
-  }
-
+  // Mapa para salvar na tabela 'indicators' (só tem id e nome)
   Map<String, dynamic> toMap() {
     return {
-      "id": this.id,
-      "name": this.name,
-      "phMin": this.phMin,
-      "phMax": this.phMax,
-      "colorHex": this.colorHex,
+      'id': id,
+      'name': name,
     };
   }
 
-  Indicator toEntity() {
-    return Indicator(
-      id: id,
-      name: name,
-      colorHex: colorHex,
-      phMax: phMax,
-      phMin: phMin,
+  // Ao ler do banco, precisamos injetar a lista de ranges manualmente depois
+  factory IndicatorModel.fromMap(Map<String, dynamic> map, List<IndicatorRangeModel> ranges) {
+    return IndicatorModel(
+      id: map['id'],
+      name: map['name'],
+      ranges: ranges,
     );
   }
+
+  factory IndicatorModel.fromEntity(Indicator entity) {
+    return IndicatorModel(
+      id: entity.id,
+      name: entity.name,
+      ranges: entity.ranges.map((e) => IndicatorRangeModel.fromEntity(e)).toList(),
+    );
+  }
+
+  Indicator toEntity() {
+    return Indicator(id: id, name: name, ranges: ranges);
+  }
+
+
 }

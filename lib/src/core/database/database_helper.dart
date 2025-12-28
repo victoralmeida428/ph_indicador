@@ -43,10 +43,20 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE indicators (
         id TEXT PRIMARY KEY,
-        name TEXT,
+        name TEXT
+      )
+    ''');
+
+    // Tabela 2: As Faixas (Filhos)
+    // Linked via indicator_id
+    await db.execute('''
+      CREATE TABLE indicator_ranges (
+        id TEXT PRIMARY KEY,
+        indicator_id TEXT,
         ph_min REAL,
         ph_max REAL,
-        color_hex INTEGER
+        color_hex INTEGER,
+        FOREIGN KEY (indicator_id) REFERENCES indicators (id) ON DELETE CASCADE
       )
     ''');
   }

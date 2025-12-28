@@ -1,15 +1,13 @@
+import 'package:ph_indicador/src/features/indicador/domain/entities/indicator_ranges.dart';
+
 class Indicator {
   final String id;
   final String name;
-  final double phMin;
-  final double phMax;
-  final int colorHex;
+  final List<IndicatorRange> ranges;
 
   Indicator({
     required this.id,
     required this.name,
-    required this.phMin,
-    required this.phMax,
-    required this.colorHex,
+    required this.ranges,
   });
 }

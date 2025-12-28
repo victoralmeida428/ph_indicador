@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ph_indicador/src/core/ui/widget/app_drawer.dart';
 
 class AppScaffold extends StatelessWidget {
   final Widget body;
@@ -28,6 +29,7 @@ class AppScaffold extends StatelessWidget {
     return Scaffold(
       backgroundColor: backgroundColor,
 
+
       appBar: showAppBar
           ? AppBar(
         title: title != null
@@ -46,6 +48,8 @@ class AppScaffold extends StatelessWidget {
         iconTheme: const IconThemeData(color: textColor), // Ícones brancos
       )
           : null,
+
+      drawer: AppDrawer(),
 
       floatingActionButton: floatingActionButton,
 

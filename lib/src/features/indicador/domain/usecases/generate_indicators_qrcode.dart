@@ -14,9 +14,7 @@ class GenerateIndicatorsQrCode {
         return {
           'id': indicator.id,
           'name': indicator.name,
-          'ph_min': indicator.phMin,
-          'ph_max': indicator.phMax,
-          'color': indicator.colorHex,
+          // 'ranges': indicator.ranges.map((e)=>)
         };
       }).toList();
 
