@@ -8,6 +8,7 @@ class AppScaffold extends StatelessWidget {
   final List<Widget>? actions;
   final bool showAppBar;
   final bool usePadding;
+  final Widget? drawer;
 
   // Definição das cores do Tema Azul Escuro (Hardcoded aqui ou vindas do Theme)
   static const Color backgroundColor = Color(0xFF0D1B2A); // Azul quase preto
@@ -20,8 +21,10 @@ class AppScaffold extends StatelessWidget {
     this.title,
     this.floatingActionButton,
     this.actions,
+    this.drawer,
     this.showAppBar = true,
-    this.usePadding = true, // Padrão com padding para não colar na borda
+    this.usePadding = true,
+
   });
 
   @override
@@ -49,7 +52,7 @@ class AppScaffold extends StatelessWidget {
       )
           : null,
 
-      drawer: AppDrawer(),
+      drawer: drawer,
 
       floatingActionButton: floatingActionButton,
 

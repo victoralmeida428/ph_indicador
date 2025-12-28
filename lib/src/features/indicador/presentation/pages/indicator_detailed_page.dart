@@ -1,29 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ph_indicador/src/core/ui/widget/app_scaffold.dart';
-import 'package:ph_indicador/src/core/ui/widget/camera_capture_widget.dart';
-import 'package:ph_indicador/src/core/utils/image_color_extractor.dart';
 import 'package:ph_indicador/src/features/indicador/domain/entities/indicator.dart';
 import 'package:ph_indicador/src/features/indicador/domain/entities/indicator_ranges.dart';
 import 'package:ph_indicador/src/features/indicador/presentation/bloc/bloc/indicator_bloc.dart';
 import 'package:ph_indicador/src/features/indicador/presentation/bloc/event/indicator_event.dart';
 import 'package:ph_indicador/src/features/indicador/presentation/bloc/state/indicator_state.dart';
 import 'package:ph_indicador/src/features/indicador/presentation/widget/add_range_widget.dart';
-import 'package:uuid/uuid.dart';
 
-class AddIndicatorPage extends StatefulWidget {
-  const AddIndicatorPage({super.key});
+class IndicatorDetailsPage extends StatefulWidget {
+  final Indicator indicator;
+
+  const IndicatorDetailsPage({super.key, required this.indicator});
 
   @override
-  State<AddIndicatorPage> createState() => _AddIndicatorPageState();
+  State<IndicatorDetailsPage> createState() => _IndicatorDetailsPageState();
 }
 
-class _AddIndicatorPageState extends State<AddIndicatorPage> {
+class _IndicatorDetailsPageState extends State<IndicatorDetailsPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  late TextEditingController _nameController; // Late para iniciar no initState
 
-  // Lista local temporária para armazenar as faixas antes de salvar no banco
-  final List<IndicatorRange> _addedRanges = [];
+  // Lista local
+  late List<IndicatorRange> _addedRanges;
+
+  @override
+  void initState() {
+    super.initState();
+    // 2. Preenchemos os dados iniciais com base no indicador recebido
+    _nameController = TextEditingController(text: widget.indicator.name);
+
+    // Criamos uma cópia da lista para não alterar o objeto original antes de salvar
+    _addedRanges = List.from(widget.indicator.ranges);
+  }
 
   @override
   void dispose() {
@@ -31,7 +40,6 @@ class _AddIndicatorPageState extends State<AddIndicatorPage> {
     super.dispose();
   }
 
-  // Ação Final: Salvar o Indicador e todas as suas faixas
   void _submit() {
     if (_formKey.currentState!.validate()) {
       if (_addedRanges.isEmpty) {
@@ -44,42 +52,46 @@ class _AddIndicatorPageState extends State<AddIndicatorPage> {
         return;
       }
 
-      final newIndicator = Indicator(
-        id: const Uuid().v4(),
+      final updatedIndicator = Indicator(
+        id: widget.indicator.id, // 3. IMPORTANTE: Mantém o ID original para atualizar
         name: _nameController.text,
-        ranges: List.from(_addedRanges), // Passa a lista de faixas
+        ranges: List.from(_addedRanges),
       );
 
-      // Envia evento para o BLoC
-      context.read<IndicatorBloc>().add(AddIndicatorEvent(newIndicator));
+      // Dispara evento de Atualizar (Você precisa ter esse evento no Bloc, veja abaixo)
+      // Se seu AddIndicatorEvent usar "INSERT OR REPLACE" no banco, pode usar ele mesmo,
+      // mas o ideal é ter um UpdateIndicatorEvent semanticamente.
+      context.read<IndicatorBloc>().add(UpdateIndicatorEvent(updatedIndicator));
     }
   }
 
-  // Remove uma faixa da lista temporária
+  // Função para deletar o indicador inteiro (Opcional, mas útil na tela de detalhes)
+  void _deleteIndicator() {
+    context.read<IndicatorBloc>().add(DeleteIndicatorEvent(widget.indicator.id));
+  }
+
   void _removeRange(int index) {
     setState(() {
       _addedRanges.removeAt(index);
     });
   }
 
-  // Abre o modal para criar UMA NOVA FAIXA
   void _showAddRangeModal() {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Permite ocupar a tela toda se precisar
+      isScrollControlled: true,
       backgroundColor: const Color(0xFF1B263B),
       builder: (ctx) => Padding(
         padding: EdgeInsets.only(
-          bottom: MediaQuery.of(ctx).viewInsets.bottom, // Ajuste teclado
+          bottom: MediaQuery.of(ctx).viewInsets.bottom,
         ),
         child: AddRangeSheet(
           onAdd: (range) {
             setState(() {
               _addedRanges.add(range);
-              // Ordena a lista por pH Minimo para ficar organizado
               _addedRanges.sort((a, b) => a.phMin.compareTo(b.phMin));
             });
-            Navigator.pop(ctx); // Fecha o modal
+            Navigator.pop(ctx);
           },
         ),
       ),
@@ -89,13 +101,36 @@ class _AddIndicatorPageState extends State<AddIndicatorPage> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: "Novo Padrão",
+      title: "Editar Padrão",
+      // Adicionamos um botão de lixeira na AppBar
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.delete, color: Colors.redAccent),
+          onPressed: () {
+            // Diálogo de confirmação antes de excluir
+            showDialog(context: context, builder: (ctx) => AlertDialog(
+              title: const Text("Excluir Padrão?"),
+              content: const Text("Essa ação não pode ser desfeita."),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancelar")),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(ctx); // Fecha dialog
+                    _deleteIndicator();
+                  },
+                  child: const Text("Excluir", style: TextStyle(color: Colors.red)),
+                ),
+              ],
+            ));
+          },
+        )
+      ],
       body: BlocListener<IndicatorBloc, IndicatorState>(
         listener: (context, state) {
           if (state is IndicatorLoaded) {
-            Navigator.pop(context); // Fecha a tela de cadastro
+            Navigator.pop(context); // Fecha a tela e volta para a lista
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Indicador salvo com sucesso!")),
+              const SnackBar(content: Text("Alterações salvas com sucesso!")),
             );
           }
           if (state is IndicatorError) {
@@ -106,7 +141,6 @@ class _AddIndicatorPageState extends State<AddIndicatorPage> {
         },
         child: Column(
           children: [
-            // PARTE 1: NOME DO INDICADOR (FIXO)
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Form(
@@ -114,7 +148,7 @@ class _AddIndicatorPageState extends State<AddIndicatorPage> {
                 child: TextFormField(
                   controller: _nameController,
                   decoration: const InputDecoration(
-                    labelText: "Nome do Indicador (Ex: Azul de Bromotimol)",
+                    labelText: "Nome do Indicador",
                     prefixIcon: Icon(Icons.label),
                     border: OutlineInputBorder(),
                     filled: true,
@@ -128,7 +162,6 @@ class _AddIndicatorPageState extends State<AddIndicatorPage> {
 
             const Divider(color: Colors.white24),
 
-            // PARTE 2: LISTA DE FAIXAS ADICIONADAS
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
@@ -141,7 +174,7 @@ class _AddIndicatorPageState extends State<AddIndicatorPage> {
                   IconButton(
                     onPressed: _showAddRangeModal,
                     icon: const Icon(Icons.add_circle, color: Colors.blueAccent, size: 32),
-                    tooltip: "Adicionar Faixa",
+                    tooltip: "Adicionar Nova Faixa",
                   )
                 ],
               ),
@@ -151,8 +184,7 @@ class _AddIndicatorPageState extends State<AddIndicatorPage> {
               child: _addedRanges.isEmpty
                   ? Center(
                 child: Text(
-                  "Nenhuma faixa adicionada.\nClique no + para começar.",
-                  textAlign: TextAlign.center,
+                  "Nenhuma faixa cadastrada.",
                   style: TextStyle(color: Colors.white.withOpacity(0.5)),
                 ),
               )
@@ -182,7 +214,6 @@ class _AddIndicatorPageState extends State<AddIndicatorPage> {
               ),
             ),
 
-            // PARTE 3: BOTÃO SALVAR GERAL
             Container(
               padding: const EdgeInsets.all(16),
               width: double.infinity,
@@ -193,7 +224,7 @@ class _AddIndicatorPageState extends State<AddIndicatorPage> {
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text("Salvar Padrão Completo", style: TextStyle(fontSize: 18)),
+                child: const Text("Salvar Alterações", style: TextStyle(fontSize: 18)),
               ),
             ),
           ],

@@ -16,3 +16,13 @@ class AddIndicatorEvent extends IndicatorEvent {
   final Indicator indicator;
   const AddIndicatorEvent(this.indicator);
 }
+
+class UpdateIndicatorEvent extends IndicatorEvent {
+  final Indicator indicator;
+  const UpdateIndicatorEvent(this.indicator);
+}
+
+class DeleteIndicatorEvent extends IndicatorEvent {
+  final String id;
+  const DeleteIndicatorEvent(this.id);
+}

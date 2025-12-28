@@ -22,6 +22,12 @@ class IndicatorLocalDataSourceImpl implements IndicatorLocalDataSource {
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
 
+        await txn.delete(
+          'indicator_ranges',
+          where: 'indicator_id=?',
+          whereArgs: [indicator.id]
+        );
+
         // 2. Salva os Filhos (Tabela indicator_ranges)
         final batch = txn.batch(); // Batch otimiza inserções múltiplas
         for (var range in indicator.ranges) {
@@ -57,7 +63,7 @@ class IndicatorLocalDataSourceImpl implements IndicatorLocalDataSource {
           'indicator_ranges',
           where: 'indicator_id = ?',
           whereArgs: [indicatorId],
-          orderBy: 'ph_min ASC', // Ordenar para ficar bonito na tela
+          orderBy: 'ph_min ASC',
         );
 
         // Converte as faixas
@@ -72,6 +78,19 @@ class IndicatorLocalDataSourceImpl implements IndicatorLocalDataSource {
       return resultList;
     } catch (e) {
       throw LocalDatabaseException("Erro ao listar indicadores: $e");
+    }
+  }
+
+  @override
+  Future<void> deleteIndicator(String id) async {
+    try {
+      await database.delete(
+        'indicators',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      throw LocalDatabaseException("Erro ao deletar indicador: $e");
     }
   }
 }

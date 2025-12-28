@@ -32,5 +32,13 @@ class IndicatorRepositoryImpl implements IndicatorRepository {
     }
   }
 
+  @override
+  Future<void> deleteIndicator(String id) async {
+    try {
+      await db.deleteIndicator(id);
+    } catch (e) {
+      throw DatabaseFailure(message: "Erro ao deletar indicador: $e");
+    }
+  }
 
 }

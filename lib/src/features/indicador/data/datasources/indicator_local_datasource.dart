@@ -3,4 +3,6 @@ import 'package:ph_indicador/src/features/indicador/data/models/indicator_model.
 abstract class IndicatorLocalDataSource {
   Future<void> insertIndicator(IndicatorModel indicator);
   Future<List<IndicatorModel>> getIndicators();
+  Future<void> deleteIndicator(String id);
+
 }

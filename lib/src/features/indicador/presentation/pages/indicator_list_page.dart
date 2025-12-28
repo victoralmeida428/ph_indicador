@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ph_indicador/src/core/ui/widget/app_drawer.dart';
 import 'package:ph_indicador/src/core/ui/widget/app_scaffold.dart';
 import 'package:ph_indicador/src/features/indicador/presentation/bloc/bloc/indicator_bloc.dart';
 import 'package:ph_indicador/src/features/indicador/presentation/bloc/event/indicator_event.dart';
 import 'package:ph_indicador/src/features/indicador/presentation/bloc/state/indicator_state.dart';
+import 'package:ph_indicador/src/features/indicador/presentation/pages/indicator_detailed_page.dart';
 import 'package:ph_indicador/src/features/indicador/presentation/widget/indicator_card.dart';
 
 class IndicatorListPage extends StatelessWidget {
@@ -14,6 +16,7 @@ class IndicatorListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: "Indicadores Salvos",
+      drawer: const AppDrawer(),
 
       // O BlocBuilder escuta as mudanças de estado emitidas pelo IndicatorBloc
       body: BlocBuilder<IndicatorBloc, IndicatorState>(
@@ -47,7 +50,16 @@ class IndicatorListPage extends StatelessWidget {
                 return IndicatorCard(
                   indicator: indicator,
                   onTap: () {
-                    // TODO: Navegar para detalhes ou edição
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => BlocProvider.value(
+                          // IMPORTANTE: Repassa o BLoC existente para a nova tela
+                          value: context.read<IndicatorBloc>(),
+                          child: IndicatorDetailsPage(indicator: indicator),
+                        ),
+                      ),
+                    );
                   },
                 );
               },
@@ -91,8 +103,6 @@ class IndicatorListPage extends StatelessWidget {
         onPressed: () {
           // Navega para a tela de adicionar
           Navigator.pushNamed(context, '/add-indicator').then((_) {
-            // QUANDO VOLTAR: Recarrega a lista para mostrar o novo item
-            // O 'context.read' pega o BLoC ativo e manda o evento
             if (context.mounted) {
               context.read<IndicatorBloc>().add(LoadIndicatorsEvent());
             }

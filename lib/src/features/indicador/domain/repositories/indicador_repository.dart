@@ -3,4 +3,5 @@ import 'package:ph_indicador/src/features/indicador/domain/entities/indicator.da
 abstract class IndicatorRepository {
   Future<void> saveIndicador(Indicator indicador);
   Future<List<Indicator>> getAllIndicators();
+  Future<void> deleteIndicator(String id);
 }

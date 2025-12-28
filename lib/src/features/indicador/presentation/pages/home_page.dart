@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ph_indicador/src/core/routes/app_routes.dart';
+import 'package:ph_indicador/src/core/ui/widget/app_drawer.dart';
 import 'package:ph_indicador/src/core/ui/widget/app_scaffold.dart';
 
 class HomePage extends StatelessWidget {
@@ -9,6 +10,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: "Menu Principal",
+      drawer: const AppDrawer(),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

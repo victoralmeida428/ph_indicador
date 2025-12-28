@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:ph_indicador/src/core/ui/widget/app_scaffold.dart';
 import 'package:ph_indicador/src/features/indicador/data/datasources/indicator_local_datasource_impl.dart';
 import 'package:ph_indicador/src/features/indicador/data/repositories/indicator_repository_impl.dart';
 
@@ -37,9 +39,22 @@ class MyApp extends StatelessWidget {
       title: 'pH Analyzer',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
-      ),
+      useMaterial3: true,
+      brightness: Brightness.dark, // Avisa o Flutter que é tema escuro
+
+      // Esta é a cor que aparece "por trás" das animações
+      scaffoldBackgroundColor: AppScaffold.backgroundColor,
+
+      // Esta é a cor de fundo de Drawers e BottomSheets
+      canvasColor: AppScaffold.backgroundColor,
+
+      // Configura a AppBar globalmente (opcional, já que vc tem no AppScaffold)
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppScaffold.appBarColor,
+        foregroundColor: Color(0xFFE0E1DD),
+        elevation: 0,
+      ), dialogTheme: DialogThemeData(backgroundColor: AppScaffold.appBarColor),
+    ),
 
       // CONFIGURAÇÃO DE ROTAS AQUI:
       initialRoute: AppRoutes.home, // Rota inicial

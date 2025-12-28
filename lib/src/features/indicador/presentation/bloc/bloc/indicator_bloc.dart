@@ -12,6 +12,8 @@ class IndicatorBloc extends Bloc<IndicatorEvent, IndicatorState> {
     // Registramos o que fazer quando o evento 'LoadIndicatorsEvent' chegar
     on<LoadIndicatorsEvent>(_onLoadIndicators);
     on<AddIndicatorEvent>(_onAddIndicator);
+    on<UpdateIndicatorEvent>(_onUpdateIndicator);
+    on<DeleteIndicatorEvent>(_onDeleteIndicator);
   }
 
   Future<void> _onLoadIndicators(event, emit) async {
@@ -37,6 +39,31 @@ class IndicatorBloc extends Bloc<IndicatorEvent, IndicatorState> {
       emit(IndicatorSuccess());
     } catch(e) {
       emit(const IndicatorError("Erro ao salvar o indicador."));
+    }
+  }
+
+  Future<void> _onUpdateIndicator(UpdateIndicatorEvent event, Emitter<IndicatorState> emit) async {
+    emit(IndicatorLoading());
+    try {
+      // Como estamos usando SQLite com conflictAlgorithm: replace,
+      // o saveIndicator funciona tanto para criar quanto atualizar.
+      await repository.saveIndicador(event.indicator);
+      add(LoadIndicatorsEvent());
+      emit(IndicatorSuccess());
+    } catch (e) {
+      emit(IndicatorError(e.toString()));
+    }
+  }
+
+  Future<void> _onDeleteIndicator(DeleteIndicatorEvent event, Emitter<IndicatorState> emit) async {
+    emit(IndicatorLoading());
+    try {
+      // Você precisará criar o método deleteIndicator no seu repositório
+      await repository.deleteIndicator(event.id);
+      add(LoadIndicatorsEvent());
+      emit(IndicatorSuccess());
+    } catch (e) {
+      emit(IndicatorError(e.toString()));
     }
   }
 }
