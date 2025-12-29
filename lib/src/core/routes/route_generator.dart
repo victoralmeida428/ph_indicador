@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ph_indicador/src/core/routes/app_routes.dart';
+import 'package:ph_indicador/src/features/analysis/presentation/bloc/bloc/analysis_bloc.dart';
+import 'package:ph_indicador/src/features/analysis/presentation/pages/analysis_page.dart';
 import 'package:ph_indicador/src/features/indicador/domain/repositories/indicador_repository.dart';
 import 'package:ph_indicador/src/features/indicador/presentation/bloc/bloc/indicator_bloc.dart';
 import 'package:ph_indicador/src/features/indicador/presentation/bloc/event/indicator_event.dart';
@@ -22,28 +24,33 @@ class RouteGenerator {
 
       case AppRoutes.indicators:
         return MaterialPageRoute(
-            builder: (_) =>
-                BlocProvider<IndicatorBloc>(
-                  create: (context) =>
-                  IndicatorBloc(repository: indicatorRepository)
-                    ..add(LoadIndicatorsEvent()),
-                  child: const IndicatorListPage(),
-                )
+          builder: (_) => BlocProvider<IndicatorBloc>(
+            create: (context) =>
+                IndicatorBloc(repository: indicatorRepository)
+                  ..add(LoadIndicatorsEvent()),
+            child: const IndicatorListPage(),
+          ),
         );
 
       case AppRoutes.addIndicator:
         return MaterialPageRoute(
-            builder: (_) =>
-                BlocProvider<IndicatorBloc>(
-                  create: (context) => IndicatorBloc(repository: indicatorRepository),
-                  child: const AddIndicatorPage(),
-                )
+          builder: (_) => BlocProvider<IndicatorBloc>(
+            create: (context) => IndicatorBloc(repository: indicatorRepository),
+            child: const AddIndicatorPage(),
+          ),
         );
 
       case AppRoutes.analysis:
         return MaterialPageRoute(
-            builder: (_) =>
-            const Scaffold(body: Center(child: Text("Tela de Câmera (TODO)"))));
+          builder: (_) => BlocProvider(
+            create: (context) => AnalysisBloc(
+              indicatorRepository:
+                  indicatorRepository, // Injete o repositório aqui
+              // calculatePhUseCase: calculatePhUseCase, // Futuro
+            ),
+            child: const AnalysisPage(),
+          ),
+        );
 
       default:
         return _errorRoute();
@@ -51,11 +58,13 @@ class RouteGenerator {
   }
 
   static Route<dynamic> _errorRoute() {
-    return MaterialPageRoute(builder: (_) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Erro')),
-        body: const Center(child: Text('Rota não encontrada')),
-      );
-    });
+    return MaterialPageRoute(
+      builder: (_) {
+        return Scaffold(
+          appBar: AppBar(title: const Text('Erro')),
+          body: const Center(child: Text('Rota não encontrada')),
+        );
+      },
+    );
   }
 }

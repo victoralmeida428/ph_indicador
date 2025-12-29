@@ -26,3 +26,10 @@ class DeleteIndicatorEvent extends IndicatorEvent {
   final String id;
   const DeleteIndicatorEvent(this.id);
 }
+
+class GenerateQrCodeEvent extends IndicatorEvent {}
+
+class ImportIndicatorsEvent extends IndicatorEvent {
+  final String jsonString;
+  const ImportIndicatorsEvent(this.jsonString);
+}

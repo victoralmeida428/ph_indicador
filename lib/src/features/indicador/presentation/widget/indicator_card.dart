@@ -3,26 +3,26 @@ import 'package:ph_indicador/src/features/indicador/domain/entities/indicator.da
 
 class IndicatorCard extends StatelessWidget {
   final Indicator indicator;
-  final VoidCallback onTap;
+  final VoidCallback? onTap; // 1. Agora é opcional (pode ser nulo)
 
   const IndicatorCard({
     super.key,
     required this.indicator,
-    required this.onTap
+    this.onTap, // 2. Removemos o 'required'
   });
 
   @override
   Widget build(BuildContext context) {
-    // 1. Cria uma cópia da lista e ordena pelo pH Mínimo para ficar organizado visualmente
     final sortedRanges = List.of(indicator.ranges)
       ..sort((a, b) => a.phMin.compareTo(b.phMin));
 
     return Card(
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      color: Colors.white10, // Fundo escuro
-      clipBehavior: Clip.antiAlias, // Garante que o InkWell respeite as bordas arredondadas
+      color: Colors.white10,
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
+        // Se onTap for null, o InkWell desativa automaticamente o efeito de clique (ripple)
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -43,7 +43,10 @@ class IndicatorCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const Icon(Icons.chevron_right, color: Colors.white54),
+
+                  // 3. Só exibe a seta se tiver ação de clique
+                  if (onTap != null)
+                    const Icon(Icons.chevron_right, color: Colors.white54),
                 ],
               ),
 
@@ -51,7 +54,7 @@ class IndicatorCard extends StatelessWidget {
               const Divider(color: Colors.white24, height: 1),
               const SizedBox(height: 12),
 
-              // --- LISTA DE FAIXAS (Uma por linha) ---
+              // --- LISTA DE FAIXAS ---
               if (sortedRanges.isEmpty)
                 const Text(
                   "Nenhuma faixa cadastrada.",
@@ -63,7 +66,6 @@ class IndicatorCard extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 8.0),
                     child: Row(
                       children: [
-                        // 1. A Cor (Visual)
                         Container(
                           width: 24,
                           height: 24,
@@ -73,10 +75,7 @@ class IndicatorCard extends StatelessWidget {
                             border: Border.all(color: Colors.white54, width: 1),
                           ),
                         ),
-
                         const SizedBox(width: 12),
-
-                        // 2. O Texto do Intervalo de pH
                         Text(
                           "pH ${range.phMin} a ${range.phMax}",
                           style: const TextStyle(

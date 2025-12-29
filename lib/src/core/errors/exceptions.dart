@@ -23,3 +23,26 @@ class DataParsingException implements Exception {
   final String message;
   DataParsingException(this.message);
 }
+
+// Erro de Regra de Negócio: O Indicador existe, mas não tem faixas cadastradas
+class EmptyRangesException implements Exception {
+  final String message;
+  EmptyRangesException([this.message = "Este indicador não possui faixas de cor cadastradas."]);
+}
+
+// Erro Técnico: Falha ao ler os pixels da imagem
+class ImageExtractionException implements Exception {
+  final String message;
+  ImageExtractionException([this.message = "Não foi possível extrair a cor da imagem."]);
+}
+
+// Adicione em exceptions.dart
+class NoColorMatchException implements Exception {
+  final String message;
+  NoColorMatchException([this.message = "A cor da amostra não corresponde a nenhuma faixa do padrão."]);
+}
+
+class QRCodeInvalid implements Exception {
+  final String message;
+  QRCodeInvalid([this.message = "Qr code inválido"]);
+}

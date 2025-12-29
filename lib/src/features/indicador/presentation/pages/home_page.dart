@@ -9,7 +9,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: "Menu Principal",
+      title: "Indicador de pH",
       drawer: const AppDrawer(),
       body: Center(
         child: Column(

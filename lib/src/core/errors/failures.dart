@@ -39,3 +39,11 @@ class InvalidInputFailure extends Failure {
   // embora a validação de UI pegue isso, é bom ter no Domain.
   const InvalidInputFailure(String message) : super(message);
 }
+
+class NoColorMatchFailure extends Failure {
+  const NoColorMatchFailure({String message = "Nenhuma cor correspondente"}):super(message);
+}
+
+class QrCodeInvalidFailure extends Failure {
+  const QrCodeInvalidFailure({String message = "QrCode inválido"}):super(message);
+}

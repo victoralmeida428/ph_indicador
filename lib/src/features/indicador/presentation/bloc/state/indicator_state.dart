@@ -31,3 +31,12 @@ class IndicatorError extends IndicatorState {
 }
 
 class IndicatorSuccess extends IndicatorState {}
+
+// Estado para mostrar o QR Code
+class IndicatorQrGenerated extends IndicatorState {
+  final String qrData;
+  const IndicatorQrGenerated(this.qrData);
+
+  @override
+  List<Object> get props => [qrData];
+}
