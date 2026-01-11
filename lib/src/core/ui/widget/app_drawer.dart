@@ -45,7 +45,7 @@ class AppDrawer extends StatelessWidget {
           _buildDrawerItem(
             context,
             icon: Icons.list_alt,
-            title: "Meus Padrões",
+            title: "Indicadores",
             route: AppRoutes.indicators,
           ),
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'overlay_with_hole_painter.dart'; // Importe seu painter aqui
+import 'overlay_with_hole_painter.dart';
 
 typedef OnPictureTaken = void Function(XFile picture);
 
@@ -17,9 +17,10 @@ class _CameraCaptureWidgetState extends State<CameraCaptureWidget> {
   CameraController? _controller;
   Future<void>? _initializeControllerFuture;
   bool _isTakingPicture = false;
-
-  // Estado para controlar a lanterna
   bool _isTorchOn = false;
+
+  List<CameraDescription> _cameras = [];
+  int _selectedCameraIndex = 0;
 
   @override
   void initState() {
@@ -29,37 +30,98 @@ class _CameraCaptureWidgetState extends State<CameraCaptureWidget> {
 
   Future<void> _initCamera() async {
     try {
-      final cameras = await availableCameras();
-      // Tenta pegar a traseira, se não tiver, pega a primeira
-      final firstCamera = cameras.firstWhere(
-            (camera) => camera.lensDirection == CameraLensDirection.back,
-        orElse: () => cameras.first,
+      // Carrega todas as câmeras disponíveis apenas uma vez
+      _cameras = await availableCameras();
+
+      if (_cameras.isEmpty) {
+        debugPrint("Nenhuma câmera encontrada");
+        return;
+      }
+
+      // Tenta encontrar a câmera traseira para iniciar
+      int backCameraIndex = _cameras.indexWhere(
+              (camera) => camera.lensDirection == CameraLensDirection.back
       );
 
-      _controller = CameraController(
-        firstCamera,
-        ResolutionPreset.high,
-        enableAudio: false,
-      );
+      // Se achou a traseira usa ela, senão usa a primeira (índice 0)
+      _selectedCameraIndex = backCameraIndex != -1 ? backCameraIndex : 0;
 
-      _initializeControllerFuture = _controller!.initialize();
+      await _startCameraConfig();
+    } catch (e) {
+      debugPrint("Erro ao inicializar lista de câmeras: $e");
+    }
+  }
 
-      // Define o flash como desligado inicialmente para garantir consistência
+  // ALTERAÇÃO 2: Função separada para iniciar o controlador (reusada na troca)
+  Future<void> _startCameraConfig() async {
+    final camera = _cameras[_selectedCameraIndex];
+
+    // 1. Guardamos a referência do controller antigo para descartar depois
+    final oldController = _controller;
+
+    // 2. Atualizamos a UI IMEDIATAMENTE para remover o CameraPreview antigo.
+    // Ao definir _controller como null, o seu build vai cair no "if (_controller == null)"
+    // e mostrar o CircularProgressIndicator em vez de tentar renderizar uma câmera morta.
+    if (mounted) {
+      setState(() {
+        _controller = null;
+        _initializeControllerFuture = null;
+      });
+    }
+
+    // 3. Agora é seguro descartar o antigo, pois ele não está mais na árvore de widgets
+    await oldController?.dispose();
+
+    // 4. Inicializa o novo controller
+    final newController = CameraController(
+      camera,
+      ResolutionPreset.high,
+      enableAudio: false,
+    );
+
+    // Inicializa a conexão com o hardware
+    final initFuture = newController.initialize();
+
+    // Atualiza as variáveis de estado
+    _controller = newController;
+    _initializeControllerFuture = initFuture;
+
+    try {
+      await initFuture;
+
+      // Configurações pós-inicialização
       if (mounted) {
-        await _initializeControllerFuture;
-        await _controller!.setFlashMode(FlashMode.off);
-        setState(() {});
+        setState(() {
+          _isTorchOn = false;
+        });
+
+        // Tenta garantir flash off (seguro ignorar erro aqui)
+        try {
+          await newController.setFlashMode(FlashMode.off);
+        } catch (_) {}
       }
     } catch (e) {
       debugPrint("Erro ao inicializar câmera: $e");
     }
   }
 
-  // Alterna entre Lanterna (Torch) e Desligado
+  // ALTERAÇÃO 3: Função para alternar entre as câmeras
+  void _onSwitchCamera() {
+    if (_cameras.length < 2) return;
+
+    setState(() {
+      // Alterna para a próxima câmera na lista
+      _selectedCameraIndex = (_selectedCameraIndex + 1) % _cameras.length;
+    });
+
+    _startCameraConfig();
+  }
+
   Future<void> _toggleFlash() async {
     if (_controller == null || !_controller!.value.isInitialized) return;
 
     try {
+      // Câmeras frontais muitas vezes não suportam modo 'torch', então é bom envolver em try/catch
       if (_isTorchOn) {
         await _controller!.setFlashMode(FlashMode.off);
         setState(() => _isTorchOn = false);
@@ -68,7 +130,10 @@ class _CameraCaptureWidgetState extends State<CameraCaptureWidget> {
         setState(() => _isTorchOn = true);
       }
     } catch (e) {
-      debugPrint("Erro ao alternar flash: $e");
+      debugPrint("Erro ao alternar flash (pode não ser suportado nesta câmera): $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Flash não disponível nesta câmera")),
+      );
     }
   }
 
@@ -86,9 +151,10 @@ class _CameraCaptureWidgetState extends State<CameraCaptureWidget> {
     setState(() => _isTakingPicture = true);
 
     try {
+      // Para fotos selfie, as vezes queremos desabilitar o espelhamento manual,
+      // mas o padrão do plugin costuma ser ok.
       final image = await _controller!.takePicture();
 
-      // Desliga a lanterna antes de sair, para economizar bateria
       if (_isTorchOn) {
         await _controller!.setFlashMode(FlashMode.off);
       }
@@ -104,7 +170,6 @@ class _CameraCaptureWidgetState extends State<CameraCaptureWidget> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    // Quadrado de 280px ou 80% da tela (o que for menor)
     final double squareSize = size.width * 0.8 > 280 ? 280 : size.width * 0.8;
 
     return Scaffold(
@@ -124,8 +189,7 @@ class _CameraCaptureWidgetState extends State<CameraCaptureWidget> {
                 child: CameraPreview(_controller!),
               ),
 
-              // 2. MÁSCARA ESCURA COM MIRA CENTRAL 28x28
-              // (Certifique-se que o OverlayWithHolePainter tem o código atualizado da mira)
+              // 2. MÁSCARA
               CustomPaint(
                 painter: OverlayWithHolePainter(
                   holeSize: squareSize,
@@ -133,7 +197,7 @@ class _CameraCaptureWidgetState extends State<CameraCaptureWidget> {
                 ),
               ),
 
-              // 3. BOTÃO FECHAR (Topo Esquerdo)
+              // 3. BOTÃO FECHAR
               Positioned(
                 top: SafeArea(child: Container()).minimum.top + 20,
                 left: 20,
@@ -146,7 +210,7 @@ class _CameraCaptureWidgetState extends State<CameraCaptureWidget> {
                 ),
               ),
 
-              // 4. BOTÃO FLASH/LANTERNA (Topo Direito)
+              // 4. BOTÃO FLASH (Esconde se a câmera atual não tiver flash, opcional, aqui mantive visível)
               Positioned(
                 top: SafeArea(child: Container()).minimum.top + 20,
                 right: 20,
@@ -178,7 +242,22 @@ class _CameraCaptureWidgetState extends State<CameraCaptureWidget> {
                 ),
               ),
 
-              // 6. BOTÃO DE CAPTURA (Rodapé)
+              // ALTERAÇÃO 4: BOTÃO DE TROCAR CÂMERA (Novo botão adicionado)
+              if (_cameras.length > 1) // Só mostra se tiver mais de 1 câmera
+                Positioned(
+                  bottom: 40,
+                  right: 40,
+                  child: CircleAvatar(
+                    backgroundColor: Colors.black54,
+                    radius: 25,
+                    child: IconButton(
+                      icon: const Icon(Icons.cameraswitch, color: Colors.white),
+                      onPressed: _onSwitchCamera,
+                    ),
+                  ),
+                ),
+
+              // 6. BOTÃO DE CAPTURA
               Positioned(
                 bottom: 40,
                 left: 0,

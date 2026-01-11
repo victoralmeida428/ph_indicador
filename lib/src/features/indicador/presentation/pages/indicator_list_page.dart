@@ -16,7 +16,7 @@ class IndicatorListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: "Indicadores Salvos",
+      title: "Indicadores",
       drawer: const AppDrawer(),
       actions: [
         PopupMenuButton<String>(
@@ -34,9 +34,9 @@ class IndicatorListPage extends StatelessWidget {
                 value: 'export',
                 child: Row(
                   children: [
-                    Icon(Icons.qr_code_2, color: Colors.black54),
+                    Icon(Icons.qr_code_2, color: Colors.white),
                     SizedBox(width: 10),
-                    Text("Exportar Padrões"),
+                    Text("Exportar Indicadores"),
                   ],
                 ),
               ),
@@ -44,9 +44,9 @@ class IndicatorListPage extends StatelessWidget {
                 value: 'import',
                 child: Row(
                   children: [
-                    Icon(Icons.qr_code_2, color: Colors.black54),
+                    Icon(Icons.qr_code_2, color: Colors.white),
                     SizedBox(width: 10),
-                    Text("Importar Padrões"),
+                    Text("Importar Indicadores"),
                   ],
                 ),
               ),
