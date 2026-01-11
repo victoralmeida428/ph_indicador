@@ -9,7 +9,7 @@ class FindBestMatchingRangeUseCase {
 
   final double tolerance;
 
-  FindBestMatchingRangeUseCase({this.tolerance = 5});
+  FindBestMatchingRangeUseCase({this.tolerance = 10});
 
   IndicatorRange call({
     required Color sampleColor,
@@ -26,22 +26,14 @@ class FindBestMatchingRangeUseCase {
       final double distance = _calculateDistance(sampleColor, rangeColor);
       if (distance < minDistance) {
         minDistance = distance;
-        print("Distancia: "+distance.toStringAsFixed(2));
-        print("Cor Lida da Câmera -> R: ${sampleColor.red}, G: ${sampleColor.green}, B: ${sampleColor.blue}");
         bestRange = range;
       }
     }
-
+    print("DISTANCIA MINIMA: $minDistance");
     if (minDistance > tolerance) {
+
       throw NoColorMatchException();
     }
-
-    print("--- RESULTADO ---");
-    print("Cor Lida: R${sampleColor.red} G${sampleColor.green} B${sampleColor.blue}");
-    print("Range Vencedor (Nome/ID): ${bestRange?.id!}"); // ou .name
-    print("Hex do Vencedor: 0x${bestRange?.colorHex.toRadixString(16).toUpperCase()}");
-    print("Distância: $minDistance");
-    print("-----------------");
 
     return bestRange!;
   }

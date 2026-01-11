@@ -181,115 +181,117 @@ class _CameraCaptureWidgetState extends State<CameraCaptureWidget> {
             return const Center(child: CircularProgressIndicator(color: Colors.white));
           }
 
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              // 1. PREVIEW DA CÂMERA
-              Center(
-                child: CameraPreview(_controller!),
-              ),
-
-              // 2. MÁSCARA
-              CustomPaint(
-                painter: OverlayWithHolePainter(
-                  holeSize: squareSize,
-                  overlayColor: Colors.black.withOpacity(0.7),
+          return SafeArea(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // 1. PREVIEW DA CÂMERA
+                Center(
+                  child: CameraPreview(_controller!),
                 ),
-              ),
-
-              // 3. BOTÃO FECHAR
-              Positioned(
-                top: SafeArea(child: Container()).minimum.top + 20,
-                left: 20,
-                child: CircleAvatar(
-                  backgroundColor: Colors.black54,
-                  child: IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => Navigator.of(context).pop(),
+            
+                // 2. MÁSCARA
+                CustomPaint(
+                  painter: OverlayWithHolePainter(
+                    holeSize: squareSize,
+                    overlayColor: Colors.black.withOpacity(0.7),
                   ),
                 ),
-              ),
-
-              // 4. BOTÃO FLASH (Esconde se a câmera atual não tiver flash, opcional, aqui mantive visível)
-              Positioned(
-                top: SafeArea(child: Container()).minimum.top + 20,
-                right: 20,
-                child: CircleAvatar(
-                  backgroundColor: _isTorchOn ? Colors.yellow.withOpacity(0.8) : Colors.black54,
-                  child: IconButton(
-                    icon: Icon(
-                      _isTorchOn ? Icons.flash_on : Icons.flash_off,
-                      color: _isTorchOn ? Colors.black : Colors.white,
-                    ),
-                    onPressed: _toggleFlash,
-                  ),
-                ),
-              ),
-
-              // 5. INSTRUÇÃO
-              Positioned(
-                top: size.height / 2 - (squareSize / 2) - 60,
-                left: 0,
-                right: 0,
-                child: const Text(
-                  "Centralize a amostra na mira",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      shadows: [Shadow(blurRadius: 4, color: Colors.black)]
-                  ),
-                ),
-              ),
-
-              // ALTERAÇÃO 4: BOTÃO DE TROCAR CÂMERA (Novo botão adicionado)
-              if (_cameras.length > 1) // Só mostra se tiver mais de 1 câmera
+            
+                // 3. BOTÃO FECHAR
                 Positioned(
-                  bottom: 40,
-                  right: 40,
+                  top: SafeArea(child: Container()).minimum.top + 20,
+                  left: 20,
                   child: CircleAvatar(
                     backgroundColor: Colors.black54,
-                    radius: 25,
                     child: IconButton(
-                      icon: const Icon(Icons.cameraswitch, color: Colors.white),
-                      onPressed: _onSwitchCamera,
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
                   ),
                 ),
-
-              // 6. BOTÃO DE CAPTURA
-              Positioned(
-                bottom: 40,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: _isTakingPicture
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : GestureDetector(
-                    onTap: _takePicture,
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.grey.shade400, width: 4),
+            
+                // 4. BOTÃO FLASH (Esconde se a câmera atual não tiver flash, opcional, aqui mantive visível)
+                Positioned(
+                  top: SafeArea(child: Container()).minimum.top + 20,
+                  right: 20,
+                  child: CircleAvatar(
+                    backgroundColor: _isTorchOn ? Colors.yellow.withOpacity(0.8) : Colors.black54,
+                    child: IconButton(
+                      icon: Icon(
+                        _isTorchOn ? Icons.flash_on : Icons.flash_off,
+                        color: _isTorchOn ? Colors.black : Colors.white,
                       ),
-                      child: Center(
-                        child: Container(
-                          width: 65,
-                          height: 65,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
+                      onPressed: _toggleFlash,
+                    ),
+                  ),
+                ),
+            
+                // 5. INSTRUÇÃO
+                Positioned(
+                  top: size.height / 2 - (squareSize / 2) - 60,
+                  left: 0,
+                  right: 0,
+                  child: const Text(
+                    "Centralize a amostra na mira",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        shadows: [Shadow(blurRadius: 4, color: Colors.black)]
+                    ),
+                  ),
+                ),
+            
+                // ALTERAÇÃO 4: BOTÃO DE TROCAR CÂMERA (Novo botão adicionado)
+                if (_cameras.length > 1) // Só mostra se tiver mais de 1 câmera
+                  Positioned(
+                    bottom: 40,
+                    right: 40,
+                    child: CircleAvatar(
+                      backgroundColor: Colors.black54,
+                      radius: 25,
+                      child: IconButton(
+                        icon: const Icon(Icons.cameraswitch, color: Colors.white),
+                        onPressed: _onSwitchCamera,
+                      ),
+                    ),
+                  ),
+            
+                // 6. BOTÃO DE CAPTURA
+                Positioned(
+                  bottom: 40,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: _isTakingPicture
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : GestureDetector(
+                      onTap: _takePicture,
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.grey.shade400, width: 4),
+                        ),
+                        child: Center(
+                          child: Container(
+                            width: 65,
+                            height: 65,
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         },
       ),

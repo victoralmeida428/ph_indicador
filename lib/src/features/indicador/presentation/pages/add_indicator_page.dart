@@ -104,99 +104,101 @@ class _AddIndicatorPageState extends State<AddIndicatorPage> {
             );
           }
         },
-        child: Column(
-          children: [
-            // PARTE 1: NOME DO INDICADOR (FIXO)
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: "Nome do Indicador (Ex: Azul de Bromotimol)",
-                    prefixIcon: Icon(Icons.label),
-                    border: OutlineInputBorder(),
-                    filled: true,
-                    fillColor: Colors.white10,
-                  ),
-                  style: const TextStyle(color: Colors.white),
-                  validator: (v) => v == null || v.isEmpty ? "Campo obrigatório" : null,
-                ),
-              ),
-            ),
-
-            const Divider(color: Colors.white24),
-
-            // PARTE 2: LISTA DE FAIXAS ADICIONADAS
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Faixas de Cor",
-                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                    onPressed: _showAddRangeModal,
-                    icon: const Icon(Icons.add_circle, color: Colors.blueAccent, size: 32),
-                    tooltip: "Adicionar Faixa",
-                  )
-                ],
-              ),
-            ),
-
-            Expanded(
-              child: _addedRanges.isEmpty
-                  ? Center(
-                child: Text(
-                  "Nenhuma faixa adicionada.\nClique no + para começar.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white.withOpacity(0.5)),
-                ),
-              )
-                  : ListView.builder(
-                itemCount: _addedRanges.length,
-                itemBuilder: (context, index) {
-                  final range = _addedRanges[index];
-                  return Card(
-                    color: Colors.white10,
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Color(range.colorHex),
-                        radius: 16,
-                      ),
-                      title: Text(
-                        "pH ${range.phMin} - ${range.phMax}",
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.redAccent),
-                        onPressed: () => _removeRange(index),
-                      ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // PARTE 1: NOME DO INDICADOR (FIXO)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: "Nome do Indicador (Ex: Azul de Bromotimol)",
+                      prefixIcon: Icon(Icons.label),
+                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.white10,
                     ),
-                  );
-                },
-              ),
-            ),
-
-            // PARTE 3: BOTÃO SALVAR GERAL
-            Container(
-              padding: const EdgeInsets.all(16),
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _submit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                    style: const TextStyle(color: Colors.white),
+                    validator: (v) => v == null || v.isEmpty ? "Campo obrigatório" : null,
+                  ),
                 ),
-                child: const Text("Salvar Padrão Completo", style: TextStyle(fontSize: 18)),
               ),
-            ),
-          ],
+          
+              const Divider(color: Colors.white24),
+          
+              // PARTE 2: LISTA DE FAIXAS ADICIONADAS
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Faixas de Cor",
+                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    IconButton(
+                      onPressed: _showAddRangeModal,
+                      icon: const Icon(Icons.add_circle, color: Colors.blueAccent, size: 32),
+                      tooltip: "Adicionar Faixa",
+                    )
+                  ],
+                ),
+              ),
+          
+              Expanded(
+                child: _addedRanges.isEmpty
+                    ? Center(
+                  child: Text(
+                    "Nenhuma faixa adicionada.\nClique no + para começar.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                  ),
+                )
+                    : ListView.builder(
+                  itemCount: _addedRanges.length,
+                  itemBuilder: (context, index) {
+                    final range = _addedRanges[index];
+                    return Card(
+                      color: Colors.white10,
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: Color(range.colorHex),
+                          radius: 16,
+                        ),
+                        title: Text(
+                          "pH ${range.phMin} - ${range.phMax}",
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.redAccent),
+                          onPressed: () => _removeRange(index),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+          
+              // PARTE 3: BOTÃO SALVAR GERAL
+              Container(
+                padding: const EdgeInsets.all(16),
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: const Text("Salvar Padrão Completo", style: TextStyle(fontSize: 18)),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

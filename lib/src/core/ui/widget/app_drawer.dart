@@ -6,65 +6,67 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Drawer(
-      // Fundo do Drawer seguindo o tema escuro
-      backgroundColor: const Color(0xFF0D1B2A),
-      child: Column(
-        children: [
-          // CABEÇALHO (Logo ou Info do Usuário)
-          UserAccountsDrawerHeader(
-            decoration: const BoxDecoration(
-              color: Color(0xFF1B263B), // Azul um pouco mais claro
+    return SafeArea(
+      child: Drawer(
+        // Fundo do Drawer seguindo o tema escuro
+        backgroundColor: const Color(0xFF0D1B2A),
+        child: Column(
+          children: [
+            // CABEÇALHO (Logo ou Info do Usuário)
+            UserAccountsDrawerHeader(
+              decoration: const BoxDecoration(
+                color: Color(0xFF1B263B), // Azul um pouco mais claro
+              ),
+              currentAccountPicture: const CircleAvatar(
+                backgroundColor: Colors.blueAccent,
+                child: Icon(Icons.science, color: Colors.white, size: 30),
+              ),
+              accountName: const Text(
+                "pH Analyzer",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              accountEmail: const Text(
+                "Versão 1.0.0",
+                style: TextStyle(color: Colors.white70),
+              ),
             ),
-            currentAccountPicture: const CircleAvatar(
-              backgroundColor: Colors.blueAccent,
-              child: Icon(Icons.science, color: Colors.white, size: 30),
-            ),
-            accountName: const Text(
-              "pH Analyzer",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-            accountEmail: const Text(
-              "Versão 1.0.0",
-              style: TextStyle(color: Colors.white70),
-            ),
-          ),
-
-          // ITEM 1: LEITURA DE AMOSTRA
-          _buildDrawerItem(
-            context,
-            icon: Icons.camera_alt_outlined,
-            title: "Ler Amostra",
-            route: AppRoutes.analysis,
-          ),
-
-          // DIVISOR
-          const Divider(color: Colors.white24, height: 1),
-
-          // ITEM 2: CADASTRO DE PADRÃO
-          _buildDrawerItem(
-            context,
-            icon: Icons.list_alt,
-            title: "Indicadores",
-            route: AppRoutes.indicators,
-          ),
-
-          // Espaço para jogar o botão de sair/config para o final
-          const Spacer(),
-
-          const Divider(color: Colors.white24, height: 1),
-
-          _buildDrawerItem(
+      
+            // ITEM 1: LEITURA DE AMOSTRA
+            _buildDrawerItem(
               context,
-              icon: Icons.settings,
-              title: "Configurações",
-              onTap: () {
-                Navigator.pop(context); // Fecha o drawer
-                // TODO: Navegar para config
-              }
-          ),
-          const SizedBox(height: 20), // Margem inferior
-        ],
+              icon: Icons.camera_alt_outlined,
+              title: "Ler Amostra",
+              route: AppRoutes.analysis,
+            ),
+      
+            // DIVISOR
+            const Divider(color: Colors.white24, height: 1),
+      
+            // ITEM 2: CADASTRO DE PADRÃO
+            _buildDrawerItem(
+              context,
+              icon: Icons.list_alt,
+              title: "Indicadores",
+              route: AppRoutes.indicators,
+            ),
+      
+            // Espaço para jogar o botão de sair/config para o final
+            const Spacer(),
+      
+            const Divider(color: Colors.white24, height: 1),
+      
+            _buildDrawerItem(
+                context,
+                icon: Icons.settings,
+                title: "Configurações",
+                onTap: () {
+                  Navigator.pop(context); // Fecha o drawer
+                  // TODO: Navegar para config
+                }
+            ),
+            const SizedBox(height: 20), // Margem inferior
+          ],
+        ),
       ),
     );
   }
