@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:ph_indicador/src/core/settings/settings_service.dart';
 import 'package:ph_indicador/src/core/ui/widget/app_scaffold.dart';
 import 'package:ph_indicador/src/features/indicador/data/datasources/indicator_local_datasource_impl.dart';
 import 'package:ph_indicador/src/features/indicador/data/repositories/indicator_repository_impl.dart';
@@ -21,9 +22,15 @@ void main() async {
   final localDataSource = IndicatorLocalDataSourceImpl(database);
   final indicatorRepository = IndicatorRepositoryImpl(db:localDataSource);
 
-  // 4. Configuração das Rotas
+  // 4. Inicializar serviços
+  final settingsService = await SettingsService.init();
+
+  // 5. Configuração das Rotas
   // Passamos o repositório para o gerador de rotas
-  final routeGenerator = RouteGenerator(indicatorRepository: indicatorRepository);
+  final routeGenerator = RouteGenerator(
+    indicatorRepository: indicatorRepository,
+    settingsService: settingsService,
+  );
 
   runApp(MyApp(routeGenerator: routeGenerator));
 }

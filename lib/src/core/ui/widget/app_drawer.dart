@@ -59,10 +59,7 @@ class AppDrawer extends StatelessWidget {
                 context,
                 icon: Icons.settings,
                 title: "Configurações",
-                onTap: () {
-                  Navigator.pop(context); // Fecha o drawer
-                  // TODO: Navegar para config
-                }
+                route: AppRoutes.settings,
             ),
             const SizedBox(height: 20), // Margem inferior
           ],

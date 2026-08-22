@@ -1,28 +1,28 @@
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ph_indicador/src/core/errors/exceptions.dart';
 import 'package:ph_indicador/src/core/errors/failures.dart';
+import 'package:ph_indicador/src/core/settings/settings_service.dart';
 import 'package:ph_indicador/src/core/utils/image_color_extractor.dart';
 import 'package:ph_indicador/src/features/analysis/domain/usecases/find_best_match_range_usecase.dart';
 import 'package:ph_indicador/src/features/analysis/presentation/bloc/event/analysis_event.dart';
 import 'package:ph_indicador/src/features/analysis/presentation/bloc/state/analysis_state.dart';
+import 'package:ph_indicador/src/features/indicador/domain/entities/indicator.dart';
 import 'package:ph_indicador/src/features/indicador/domain/entities/indicator_ranges.dart';
 import 'package:ph_indicador/src/features/indicador/domain/repositories/indicador_repository.dart';
 
 class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
   final IndicatorRepository indicatorRepository;
+  final SettingsService settingsService;
 
-  // final CalculatePhUseCase calculatePhUseCase; // Futuro
-
-  AnalysisBloc({required this.indicatorRepository}) : super(AnalysisInitial()) {
+  AnalysisBloc({required this.indicatorRepository, required this.settingsService})
+      : super(AnalysisInitial()) {
     on<LoadAvailableIndicatorsEvent>(_onLoadIndicators);
     on<SelectIndicatorEvent>(_onSelectIndicator);
     on<AnalyzeImageEvent>(_onAnalyzeImage);
   }
 
-  // 1. Carrega a lista para o dropdown
   Future<void> _onLoadIndicators(event, emit) async {
     emit(AnalysisLoadingIndicators());
     try {
@@ -33,7 +33,6 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
     }
   }
 
-  // 2. Atualiza o indicador selecionado no estado
   void _onSelectIndicator(
     SelectIndicatorEvent event,
     Emitter<AnalysisState> emit,
@@ -44,7 +43,6 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
     }
   }
 
-  // 3. Processa a imagem (Lógica principal)
   Future<void> _onAnalyzeImage(
     AnalyzeImageEvent event,
     Emitter<AnalysisState> emit,
@@ -65,18 +63,28 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
     emit(AnalysisAnalyzing());
 
     try {
-      // 1. Extrair a cor média da amostra (usando seu utilitário)
       final Color? sampledColor = await ImageColorExtractor.extractAverageColor(
         event.imagePath,
       );
 
       if (sampledColor == null) throw ImageExtractionException();
 
-      // 2. Encontrar a faixa mais próxima (Cálculo de Distância)
-      final findBestMatchRange = FindBestMatchingRangeUseCase();
-      final IndicatorRange closestRange = findBestMatchRange.call(sampleColor: sampledColor, ranges: selectedIndicator.ranges);
+      final tolerance = settingsService.getAnalysisTolerance();
+      final kL = settingsService.getAnalysisKL();
+      final normalizeIntensity = settingsService.getColorNormalization();
+      final matchingMode = settingsService.getMatchingMode();
 
-      // 3. Emitir o Sucesso com a faixa encontrada
+      final findBestMatchRange = FindBestMatchingRangeUseCase(
+        tolerance: tolerance,
+        kL: kL,
+        normalizeIntensity: normalizeIntensity,
+        matchingMode: matchingMode,
+      );
+      final IndicatorRange closestRange = findBestMatchRange.call(
+        sampleColor: sampledColor,
+        ranges: selectedIndicator.ranges,
+      );
+
       emit(
         AnalysisSuccess(matchedRange: closestRange, sampledColor: sampledColor),
       );
@@ -85,7 +93,6 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
       const failure = NoColorMatchFailure();
       emit(AnalysisError(failure.message));
       emit(currentState);
-
 
     } on EmptyRangesException catch (e) {
       emit(AnalysisError("O padrão selecionado não possui faixas cadastradas."));

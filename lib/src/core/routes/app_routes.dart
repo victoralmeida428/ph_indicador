@@ -3,4 +3,5 @@ class AppRoutes {
   static const String indicators = '/indicators';
   static const String addIndicator = '/add-indicator';
   static const String analysis = '/analysis';
+  static const String settings = '/settings';
 }

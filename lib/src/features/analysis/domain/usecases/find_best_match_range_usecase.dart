@@ -8,8 +8,16 @@ import 'package:ph_indicador/src/features/indicador/domain/entities/indicator_ra
 class FindBestMatchingRangeUseCase {
 
   final double tolerance;
+  final double kL;
+  final bool normalizeIntensity;
+  final String matchingMode;
 
-  FindBestMatchingRangeUseCase({this.tolerance = 10});
+  FindBestMatchingRangeUseCase({
+    this.tolerance = 10,
+    this.kL = 1.0,
+    this.normalizeIntensity = false,
+    this.matchingMode = 'ciede2000',
+  });
 
   IndicatorRange call({
     required Color sampleColor,
@@ -18,18 +26,26 @@ class FindBestMatchingRangeUseCase {
     if (ranges.isEmpty) {
         throw EmptyRangesException();
     }
+
+    Color processedSample = sampleColor;
+    if (normalizeIntensity) {
+      processedSample = _normalizeColor(sampleColor);
+    }
+
     IndicatorRange? bestRange;
     double minDistance = double.infinity;
 
     for (var range in ranges) {
-      final Color rangeColor = Color(range.colorHex);
-      final double distance = _calculateDistance(sampleColor, rangeColor);
+      Color rangeColor = Color(range.colorHex);
+      if (normalizeIntensity) {
+        rangeColor = _normalizeColor(rangeColor);
+      }
+      final double distance = _calculateDistance(processedSample, rangeColor);
       if (distance < minDistance) {
         minDistance = distance;
         bestRange = range;
       }
     }
-    print("DISTANCIA MINIMA: $minDistance");
     if (minDistance > tolerance) {
 
       throw NoColorMatchException();
@@ -38,6 +54,17 @@ class FindBestMatchingRangeUseCase {
     return bestRange!;
   }
 
+  Color _normalizeColor(Color c) {
+    double total = c.r + c.g + c.b;
+    if (total == 0) return c;
+    double scale = (255.0 * 3) / total;
+    return Color.fromARGB(
+      255,
+      (c.r * scale).clamp(0, 255).toInt(),
+      (c.g * scale).clamp(0, 255).toInt(),
+      (c.b * scale).clamp(0, 255).toInt(),
+    );
+  }
 
   double _calculateDistance(Color sampleColor, Color rangeColor) {
     var labAmostra = rgbToLab(
@@ -51,15 +78,22 @@ class FindBestMatchingRangeUseCase {
         rangeColor.g * 255,
         rangeColor.b * 255
     );
-    return calculateCIEDE2000(labAmostra, labPadrao);
+
+    switch (matchingMode) {
+      case 'chromaticity':
+        return _chromaticityDistance(labAmostra, labPadrao);
+      default:
+        return calculateCIEDE2000(labAmostra, labPadrao, kL: kL);
+    }
   }
 
-  /// Calcula a diferença de cor CIEDE2000 entre duas cores LAB.
-  ///
-  /// [lab1] e [lab2] devem ser listas de 3 elementos [L, a, b].
-  /// Retorna o Delta E (double).
-  double calculateCIEDE2000(List<num> lab1, List<num> lab2) {
-    // Extraindo L, a, b
+  double _chromaticityDistance(List<num> lab1, List<num> lab2) {
+    double da = lab1[1].toDouble() - lab2[1].toDouble();
+    double db = lab1[2].toDouble() - lab2[2].toDouble();
+    return sqrt(da * da + db * db);
+  }
+
+  double calculateCIEDE2000(List<num> lab1, List<num> lab2, {double kL = 1.0}) {
     double L1 = lab1[0].toDouble();
     double a1 = lab1[1].toDouble();
     double b1 = lab1[2].toDouble();
@@ -68,30 +102,24 @@ class FindBestMatchingRangeUseCase {
     double a2 = lab2[1].toDouble();
     double b2 = lab2[2].toDouble();
 
-    // Constantes de peso (geralmente 1 para aplicações padrão)
-    const double kL = 1.0;
     const double kC = 1.0;
     const double kH = 1.0;
 
-    // 1. Calcular C (Chroma) e G (fator de ajuste para o eixo a)
     double C1 = sqrt(pow(a1, 2) + pow(b1, 2));
     double C2 = sqrt(pow(a2, 2) + pow(b2, 2));
     double C_bar = (C1 + C2) / 2.0;
 
     double G = 0.5 * (1 - sqrt(pow(C_bar, 7) / (pow(C_bar, 7) + pow(25, 7))));
 
-    // 2. Calcular a', C' e h'
     double a1_prime = (1 + G) * a1;
     double a2_prime = (1 + G) * a2;
 
     double C1_prime = sqrt(pow(a1_prime, 2) + pow(b1, 2));
     double C2_prime = sqrt(pow(a2_prime, 2) + pow(b2, 2));
 
-    // Calcular ângulos de matiz (hue) h'
     double h1_prime = _getHueAngle(a1_prime, b1);
     double h2_prime = _getHueAngle(a2_prime, b2);
 
-    // 3. Calcular diferenças Delta L', Delta C' e Delta H'
     double deltaL_prime = L2 - L1;
     double deltaC_prime = C2_prime - C1_prime;
 
@@ -112,7 +140,6 @@ class FindBestMatchingRangeUseCase {
 
     double deltaH_prime = 2 * sqrt(C1_prime * C2_prime) * sin(_degreesToRadians(deltah_prime / 2));
 
-    // 4. Calcular médias para as funções de peso
     double L_bar_prime = (L1 + L2) / 2;
     double C_bar_prime = (C1_prime + C2_prime) / 2;
 
@@ -131,7 +158,6 @@ class FindBestMatchingRangeUseCase {
       }
     }
 
-    // 5. Calcular Funções de Peso (SL, SC, SH) e T
     double T = 1 -
         0.17 * cos(_degreesToRadians(h_bar_prime - 30)) +
         0.24 * cos(_degreesToRadians(2 * h_bar_prime)) +
@@ -142,12 +168,10 @@ class FindBestMatchingRangeUseCase {
     double SC = 1 + 0.045 * C_bar_prime;
     double SH = 1 + 0.015 * C_bar_prime * T;
 
-    // 6. Calcular termo de rotação RT (correção para a região azul)
     double deltaTheta = 30 * exp(-pow((h_bar_prime - 275) / 25, 2));
     double RC = 2 * sqrt(pow(C_bar_prime, 7) / (pow(C_bar_prime, 7) + pow(25, 7)));
     double RT = -sin(_degreesToRadians(2 * deltaTheta)) * RC;
 
-    // 7. Fórmula Final CIEDE2000
     return sqrt(
         pow(deltaL_prime / (kL * SL), 2) +
             pow(deltaC_prime / (kC * SC), 2) +
@@ -155,8 +179,6 @@ class FindBestMatchingRangeUseCase {
             RT * (deltaC_prime / (kC * SC)) * (deltaH_prime / (kH * SH))
     );
   }
-
-// --- Funções Auxiliares ---
 
   double _getHueAngle(double a, double b) {
     if (a == 0 && b == 0) return 0;

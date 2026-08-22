@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ph_indicador/src/core/routes/app_routes.dart';
+import 'package:ph_indicador/src/core/settings/settings_service.dart';
 import 'package:ph_indicador/src/features/analysis/presentation/bloc/bloc/analysis_bloc.dart';
+import 'package:ph_indicador/src/features/analysis/presentation/pages/analysis_config_page.dart';
 import 'package:ph_indicador/src/features/analysis/presentation/pages/analysis_page.dart';
 import 'package:ph_indicador/src/features/indicador/domain/repositories/indicador_repository.dart';
 import 'package:ph_indicador/src/features/indicador/presentation/bloc/bloc/indicator_bloc.dart';
@@ -13,8 +15,9 @@ import 'package:ph_indicador/src/features/indicador/presentation/pages/indicator
 
 class RouteGenerator {
   final IndicatorRepository indicatorRepository;
+  final SettingsService settingsService;
 
-  RouteGenerator({required this.indicatorRepository});
+  RouteGenerator({required this.indicatorRepository, required this.settingsService});
 
   Route<dynamic> generateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -44,12 +47,16 @@ class RouteGenerator {
         return MaterialPageRoute(
           builder: (_) => BlocProvider(
             create: (context) => AnalysisBloc(
-              indicatorRepository:
-                  indicatorRepository, // Injete o repositório aqui
-              // calculatePhUseCase: calculatePhUseCase, // Futuro
+              indicatorRepository: indicatorRepository,
+              settingsService: settingsService,
             ),
             child: const AnalysisPage(),
           ),
+        );
+
+      case AppRoutes.settings:
+        return MaterialPageRoute(
+          builder: (_) => const AnalysisConfigPage(),
         );
 
       default:
