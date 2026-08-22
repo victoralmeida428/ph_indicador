@@ -144,7 +144,7 @@ Persistidos via `SettingsService` (SharedPreferences) e lidos pelo `AnalysisBloc
   | `ecd0ec9` | remoção de prints de debug no use case |
   | `bca45b7` | parâmetros de análise configuráveis (`analysis_config_page.dart`, `settings/`, ajustes no use case e no BLoC) + este relatório (`docs/RELATORIO_ARTIGO.md`) |
 
-- **Não há testes automatizados** (diretório `test/` vazio).
+- **Suíte de testes automatizados**: 85 testes (diretório `test/`), incluindo a **validação do CIEDE2000 contra os 34 pares oficiais de Sharma et al. (2005)** — todos passando. Ver §5.2, item 4.
 - A implementação dos parâmetros de análise (tolerância, kL, normalização, modo) está commitada e integrada ao fluxo (`AnalysisBloc` → `FindBestMatchingRangeUseCase`).
 - Não há balanço de branco, calibração de câmera, cartão de referência de cor nem tratamento da correção automática de imagem do dispositivo.
 
@@ -224,7 +224,7 @@ A maior fonte de erro em colorimetria por smartphone é a **variação de ilumin
 1. **Validação realizada, mas não formalizada**: há evidência empírica (concordância total com o pHmetro em casa e na sala), porém sem protocolo documentado, sem registro de nº de amostras/faixas testadas e sem tratamento estatístico. **Organizar e analisar esses dados é o pré-requisito nº 1 para o artigo.**
 2. **Sem controle documentado de iluminação**: as condições de iluminação das capturas não foram registradas; a contribuição específica de kL/normalização/modo cromaticidade permanece não quantificada (pode virar estudo complementar).
 3. **Sem calibração de cor da câmera**: não há balanço de branco, cartão de referência nem perfil do dispositivo; a cor absoluta varia entre aparelhos.
-4. **Sem testes automatizados**: o diretório `test/` está vazio; a implementação do CIEDE2000 poderia ser validada com os dados de teste de Sharma et al. (2005) — barato e de alto impacto para a credibilidade.
+4. **Testes automatizados — RESOLVIDO**: suíte de 85 testes criada em `test/` (CIEDE2000 validado contra o dataset oficial de Sharma et al., 2005 — todos os 34 pares passam com erro < 1e-4; mais use case, extrator de imagem, models, JSON/QR, datasource SQLite e BLoCs). O teste de integração do datasource revelou e corrigiu um bug de produção: o `PRAGMA foreign_keys = ON` não era ativado, desativando o `ON DELETE CASCADE` (fix em `database_helper.dart`).
 5. **Tolerância padrão subjetiva** (ΔE = 10): sem justificativa empírica; um estudo pode derivar o limiar ótimo por curva ROC.
 6. **Matching discreto**: o app retorna intervalo de pH, não valor pontual; para comparação quantitativa com pHmetro é preciso decidir a métrica (ex.: erro absoluto médio sobre o ponto médio da faixa, acurácia de classificação, concordância κ de Cohen) — decisão necessária já na organização dos dados da validação.
 7. **Sem estudos formais de usabilidade/aprendizagem**: a validação de campo não incluiu instrumentos como questionário pré/pós-teste conceitual ou SUS; podem ser incorporados em uma segunda rodada de aplicação.

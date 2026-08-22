@@ -31,6 +31,10 @@ class DatabaseHelper {
     return await openDatabase(
       path,
       version: 1, // Se mudar a estrutura do banco no futuro, aumente este número
+      onConfigure: (db) async {
+        // Necessário para o ON DELETE CASCADE da tabela indicator_ranges
+        await db.execute('PRAGMA foreign_keys = ON');
+      },
       onCreate: _createDB,
       // onUpgrade: _onUpgrade, // Usado para migrações futuras
     );
