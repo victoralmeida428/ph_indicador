@@ -131,9 +131,21 @@ Persistidos via `SettingsService` (SharedPreferences) e lidos pelo `AnalysisBloc
 
 ### 2.6 Estado atual do repositório
 
-- 7 commits no `main` (de "inicio tela" a "implementar troca de câmera e melhorar precisão de cor com CIEDE2000").
+- 8 commits no `main`, árvore de trabalho **limpa** (sem alterações pendentes):
+
+  | Commit | Descrição |
+  |---|---|
+  | `422cad3` | first commit |
+  | `e0acd99` | início da tela |
+  | `e37108c` | implementando bloc e câmera |
+  | `70943dd` | mais de uma faixa por indicador e tema |
+  | `04dc1f5` | leitura de amostra e export/import via QR Code |
+  | `77bbffe` | troca de câmera e precisão de cor com CIEDE2000 |
+  | `ecd0ec9` | remoção de prints de debug no use case |
+  | `bca45b7` | parâmetros de análise configuráveis (`analysis_config_page.dart`, `settings/`, ajustes no use case e no BLoC) + este relatório (`docs/RELATORIO_ARTIGO.md`) |
+
 - **Não há testes automatizados** (diretório `test/` vazio).
-- Há alterações não commitadas (página de configurações `analysis_config_page.dart`, `settings/`, ajustes no use case e no BLoC) — correspondem à implementação recente dos parâmetros de análise.
+- A implementação dos parâmetros de análise (tolerância, kL, normalização, modo) está commitada e integrada ao fluxo (`AnalysisBloc` → `FindBestMatchingRangeUseCase`).
 - Não há balanço de branco, calibração de câmera, cartão de referência de cor nem tratamento da correção automática de imagem do dispositivo.
 
 ---
