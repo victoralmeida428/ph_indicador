@@ -131,7 +131,7 @@ Persistidos via `SettingsService` (SharedPreferences) e lidos pelo `AnalysisBloc
 
 ### 2.6 Estado atual do repositório
 
-- 8 commits no `main`, árvore de trabalho **limpa** (sem alterações pendentes):
+- 10 commits no `main`, árvore de trabalho **limpa** (sem alterações pendentes):
 
   | Commit | Descrição |
   |---|---|
@@ -142,7 +142,9 @@ Persistidos via `SettingsService` (SharedPreferences) e lidos pelo `AnalysisBloc
   | `04dc1f5` | leitura de amostra e export/import via QR Code |
   | `77bbffe` | troca de câmera e precisão de cor com CIEDE2000 |
   | `ecd0ec9` | remoção de prints de debug no use case |
-  | `bca45b7` | parâmetros de análise configuráveis (`analysis_config_page.dart`, `settings/`, ajustes no use case e no BLoC) + este relatório (`docs/RELATORIO_ARTIGO.md`) |
+  | `bca45b7` | parâmetros de análise configuráveis (`analysis_config_page.dart`, `settings/`, ajustes no use case e no BLoC) + relatório inicial |
+  | `4cf7192` | atualização do relatório (eixo educacional, validação em sala, estudo de caso) |
+  | `f605d56` | suíte de testes automatizados (85 testes, incl. validação CIEDE2000 vs Sharma) + correção do cascade via `PRAGMA foreign_keys` |
 
 - **Suíte de testes automatizados**: 85 testes (diretório `test/`), incluindo a **validação do CIEDE2000 contra os 34 pares oficiais de Sharma et al. (2005)** — todos passando. Ver §5.2, item 4.
 - A implementação dos parâmetros de análise (tolerância, kL, normalização, modo) está commitada e integrada ao fluxo (`AnalysisBloc` → `FindBestMatchingRangeUseCase`).
